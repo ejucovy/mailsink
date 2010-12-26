@@ -89,12 +89,17 @@ class SinkContentsHtml(resource.Resource):
         messages = [message.meta for message in self._root._sink.contents()]
         body += '<h1>%s messages</h1>' % len(messages)
         for message in messages:
-            body += '<table><tbody>'
+            body += '<ul class="message">'
+            id = message['id']
+            parts = message['parts']
+            for part in parts:
+                href = '/message/%s/%s' % (id, part[0])
+                body += '<li><a href="%s">%s</a></li>' % (href, part[1])
             for key in message:
                 if not isinstance(message[key], basestring):
                     continue
-                body += '<tr><td>%s</td><td>%s</td></tr>' % (key, message[key])
-            body += '</tbody></table>'
+                body += '<li>%s: <span class="%s">%s</span></li>' % (key, key, message[key])
+            body += '</ul>'
         body += '</body></html>'
         return body
 
