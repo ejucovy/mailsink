@@ -22,6 +22,11 @@ class Sink(object):
     def unsub(self, d):
         self._subs.discard(d)
 
+    def clear(self):
+        size = len(self._msg_ids)
+        self._msg_ids = [None for i in range(size)]
+        self._store = {}
+
     def add(self, item):
         self._store[item.id] = item
         expired = self._msg_ids.pop()

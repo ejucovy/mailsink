@@ -98,6 +98,17 @@ class SinkContentsHtml(resource.Resource):
         body += '</body></html>'
         return body
 
+class DrainSink(resource.Resource):
+    isLeaf = True
+
+    def __init__(self, root):
+        resource.Resource.__init__(self)
+        self._sink = root._sink
+
+    def render_GET(self, request):
+        self._sink.clear()
+        return 'ok'
+
 class SinkStreamer(resource.Resource):
     isLeaf = True
 
@@ -149,6 +160,7 @@ class SinkViewer(resource.Resource):
     _dispatch = {
         'messages.json': SinkContents,
         'messages.html': SinkContentsHtml,
+        'drain': DrainSink,
         'updates.json': SinkStreamer,
         'message': Message,
     }
