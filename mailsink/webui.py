@@ -76,6 +76,27 @@ class SinkContents(resource.Resource):
         request.setHeader("Content-Type", "application/json")
         return json.dumps([message.meta for message in self._root._sink.contents()])
 
+class SinkContentsHtml(resource.Resource):
+    isLeaf = True
+
+    def __init__(self, root):
+        resource.Resource.__init__(self)
+        self._root = root
+
+    def render_GET(self, request):
+        request.setHeader("Content-Type", "text/html")
+        body = '<html><body>'
+        messages = [message.meta for message in self._root._sink.contents()]
+        body += '<h1>%s messages</h1>' % len(messages)
+        for message in messages:
+            body += '<table><tbody>'
+            for key in message:
+                if not isinstance(message[key], basestring):
+                    continue
+                body += '<tr><td>%s</td><td>%s</td></tr>' % (key, message[key])
+            body += '</tbody></table>'
+        body += '</body></html>'
+        return body
 
 class SinkStreamer(resource.Resource):
     isLeaf = True
@@ -127,6 +148,7 @@ class SinkViewer(resource.Resource):
 
     _dispatch = {
         'messages.json': SinkContents,
+        'messages.html': SinkContentsHtml,
         'updates.json': SinkStreamer,
         'message': Message,
     }
