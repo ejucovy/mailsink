@@ -77,8 +77,6 @@ class SinkContents(resource.Resource):
         return json.dumps([message.meta for message in self._root._sink.contents()])
 
 class SinkContentsHtml(resource.Resource):
-    isLeaf = True
-
     def __init__(self, root):
         resource.Resource.__init__(self)
         self._root = root
@@ -94,12 +92,46 @@ class SinkContentsHtml(resource.Resource):
             parts = message['parts']
             for part in parts:
                 href = '/message/%s/%s' % (id, part[0])
-                body += '<li><a href="%s">%s</a></li>' % (href, part[1])
+                body += '<li><a rel="%s" href="%s">%s</a></li>' % (part[1],
+                                                                   href, 
+                                                                   part[1])
             for key in message:
                 if not isinstance(message[key], basestring):
                     continue
-                body += '<li>%s: <span class="%s">%s</span></li>' % (key, key, message[key])
+                body += '<li>%s: <span class="%s"><a href="/messages.html/%s">%s</a></span></li>' % (
+                    key, key, id, message[key])
             body += '</ul>'
+        body += '</body></html>'
+        return body
+
+    def getChild(self, name, request):
+        if name in self._root._sink:
+            return MessageComponentHtml(self._root._sink[name])
+        else:
+            return Error(410, "Message no longer available")
+
+class MessageComponentHtml(resource.Resource):
+    isLeaf = True
+
+    def __init__(self, message):
+        resource.Resource.__init__(self)
+        self.message = message
+
+    def render_GET(self, request):
+        request.setHeader("Content-Type", "text/html")
+        body = '<html><body>'
+        message = self.message.meta
+        body += '<ul class="message">'
+        id = message['id']
+        parts = message['parts']
+        for part in parts:
+            href = '/message/%s/%s' % (id, part[0])
+            body += '<li><a href="%s">%s</a></li>' % (href, part[1])
+        for key in message:
+            if not isinstance(message[key], basestring):
+                continue
+            body += '<li>%s: <span class="%s">%s</span></li>' % (key, key, message[key])
+        body += '</ul>'
         body += '</body></html>'
         return body
 
