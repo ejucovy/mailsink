@@ -54,6 +54,14 @@ class MessageComponent(resource.Resource):
         type = part.get("type", "text/plain")
         request.setHeader("Content-Type", type)
 
+        pre = ''
+        if 'mailstr' in request.args:
+            for header in self.message.meta:
+                val = self.message.meta[header]
+                if not isinstance(val, basestring): continue
+                pre += "%s: %s\n" % (header, val)
+            pre += '\n'
+
         if 'html' in type:
             body = part['payload']
             for pid, p in self.message.parts.items():
@@ -61,9 +69,9 @@ class MessageComponent(resource.Resource):
                     old_uri = 'cid:' + p['cid'][1:-1]
                     new_uri = '/message/%s/%s' % (self.message.id, pid)
                     body = body.replace(old_uri, new_uri)
-            return body
+            return pre + body
         else:
-            return part['payload']
+            return pre + part['payload']
 
 class SinkContents(resource.Resource):
     isLeaf = True
@@ -92,9 +100,8 @@ class SinkContentsHtml(resource.Resource):
             parts = message['parts']
             for part in parts:
                 href = '/message/%s/%s' % (id, part[0])
-                body += '<li><a rel="%s" href="%s">%s</a></li>' % (part[1],
-                                                                   href, 
-                                                                   part[1])
+                body += '<li><a rel="%s" href="%s?mailstr=1">%s</a></li>' % (
+                    part[1], href, part[1])
             for key in message:
                 if not isinstance(message[key], basestring):
                     continue
@@ -126,7 +133,7 @@ class MessageComponentHtml(resource.Resource):
         parts = message['parts']
         for part in parts:
             href = '/message/%s/%s' % (id, part[0])
-            body += '<li><a href="%s">%s</a></li>' % (href, part[1])
+            body += '<li><a href="%s?mailstr=1">%s</a></li>' % (href, part[1])
         for key in message:
             if not isinstance(message[key], basestring):
                 continue
