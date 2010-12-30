@@ -106,7 +106,7 @@ class SinkContentsHtml(resource.Resource):
                 if not isinstance(message[key], basestring):
                     continue
                 body += '<li>%s: <span class="%s"><a href="/messages.html/%s">%s</a></span></li>' % (
-                    key, key, id, message[key])
+                    key, key, id, message[key].replace("<", "&lt;"))
             body += '</ul>'
         body += '</body></html>'
         return body
@@ -137,7 +137,7 @@ class MessageComponentHtml(resource.Resource):
         for key in message:
             if not isinstance(message[key], basestring):
                 continue
-            body += '<li>%s: <span class="%s">%s</span></li>' % (key, key, message[key])
+            body += '<li>%s: <span class="%s">%s</span></li>' % (key, key, message[key].replace("<", "&lt;"))
         body += '</ul>'
         body += '</body></html>'
         return body
